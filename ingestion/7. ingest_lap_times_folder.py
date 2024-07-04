@@ -33,7 +33,9 @@ final_df = lap_times_df.withColumnRenamed("driverId", "driver_id") \
 
 # COMMAND ----------
 
-final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/lap_times/")
+#final_df.write.mode("overwrite").parquet(f"{processed_folder_path}/lap_times/")
+
+final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.lap_times")
 
 # COMMAND ----------
 

@@ -58,7 +58,9 @@ drivers_final_df = drivers_df.withColumnRenamed("driverId", "driver_id") \
 
 # COMMAND ----------
 
-drivers_final_df.write.parquet(f"{processed_folder_path}/drivers", mode= "overwrite")
+#drivers_final_df.write.parquet(f"{processed_folder_path}/drivers", mode= "overwrite")
+
+drivers_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.drivers")
 
 # COMMAND ----------
 

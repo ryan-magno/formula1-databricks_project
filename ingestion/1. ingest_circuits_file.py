@@ -103,7 +103,16 @@ circuits_final_df = add_ingestion_date(circuits_renamed_df)
 
 # COMMAND ----------
 
-circuits_final_df.write.parquet(f"{processed_folder_path}/circuits", mode = "overwrite")
+#save tarnsformed df to processed folder
+#circuits_final_df.write.parquet(f"{processed_folder_path}/circuits", mode = "overwrite")
+
+#save as table to f1_processed database
+circuits_final_df.write.mode("overwrite").format("parquet").saveAsTable("f1_processed.circuits")
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC desc extended f1_processed.circuits;
 
 # COMMAND ----------
 
@@ -112,7 +121,9 @@ circuits_final_df.write.parquet(f"{processed_folder_path}/circuits", mode = "ove
 
 # COMMAND ----------
 
-circuits_parquet = spark.read.parquet(f"{processed_folder_path}/circuits")
+#circuits_parquet = spark.read.parquet(f"{processed_folder_path}/circuits")
+
+#display(circuits_parquet)
 
 # COMMAND ----------
 

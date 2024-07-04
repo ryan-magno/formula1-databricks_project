@@ -56,7 +56,10 @@ results_renamed = results_df.withColumnRenamed("resultId", "result_id") \
 
 # COMMAND ----------
 
-results_renamed.write.mode("overwrite").partitionBy("race_id").parquet(f"{processed_folder_path}/results")
+#results_renamed.write.mode("overwrite").partitionBy("race_id").parquet(f"{processed_folder_path}/results")
+
+results_renamed.write.mode("overwrite").partitionBy('race_id').format("parquet").saveAsTable("f1_processed.results")
+
 
 # COMMAND ----------
 
