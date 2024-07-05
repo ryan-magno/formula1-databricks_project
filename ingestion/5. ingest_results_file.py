@@ -1,6 +1,11 @@
 # Databricks notebook source
-dbutils.widgets.text("p_data_source", "")
+dbutils.widgets.text("p_data_source", "Ergast API")
 v_data_source = dbutils.widgets.get("p_data_source")
+
+# COMMAND ----------
+
+dbutils.widgets.text("p_file_date", "2021-03-28")
+v_file_date = dbutils.widgets.get("p_file_date")
 
 # COMMAND ----------
 
@@ -32,16 +37,16 @@ results_schema = StructType(fields=[StructField("resultId", IntegerType(), False
 
 # COMMAND ----------
 
-file_path = f"{raw_folder_path}/results.json"
-
-results_df = spark.read.json(path = file_path, schema = results_schema)
+results_df = spark.read \
+.schema(results_schema) \
+.json(f"{raw_folder_path}/{v_file_date}/results.json")
 
 # COMMAND ----------
 
 from pyspark.sql.functions import current_timestamp
 from pyspark.sql.functions import lit 
 
-results_renamed = results_df.withColumnRenamed("resultId", "result_id") \
+results_final_df = results_df.withColumnRenamed("resultId", "result_id") \
                             .withColumnRenamed("raceId", "race_id") \
                             .withColumnRenamed("driverId", "driver_id") \
                             .withColumnRenamed("constructorId", "constructor_id") \
@@ -56,11 +61,25 @@ results_renamed = results_df.withColumnRenamed("resultId", "result_id") \
 
 # COMMAND ----------
 
+for race_id_list in results_final_df.select("race_id").distinct().collect():
+    if (spark._jsparkSession.catalog().tableExists("f1_processed.results")):
+        spark.sql(f"ALTER TABLE f1_processed.results DROP IF EXISTS PARTITION (race_id = {race_id_list.race_id})")
+
+# COMMAND ----------
+
 #results_renamed.write.mode("overwrite").partitionBy("race_id").parquet(f"{processed_folder_path}/results")
 
-results_renamed.write.mode("overwrite").partitionBy('race_id').format("parquet").saveAsTable("f1_processed.results")
+results_final_df.write.mode("append").partitionBy('race_id').format("parquet").saveAsTable("f1_processed.results")
 
 
 # COMMAND ----------
 
-dbutils.notebook.exit("Success")
+# MAGIC  %sql
+# MAGIC SELECT race_id, COUNT(1) 
+# MAGIC  FROM f1_processed.results
+# MAGIC GROUP BY race_id
+# MAGIC ORDER BY race_id DESC;
+
+# COMMAND ----------
+
+ dbutils.notebook.exit("Success")
