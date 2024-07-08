@@ -2,12 +2,12 @@
 	"name": "SQL script 1",
 	"properties": {
 		"content": {
-			"query": "-- This is auto-generated code\nSELECT\n    TOP 100 *\nFROM\n    OPENROWSET(\n        BULK 'https://azuredetraining.dfs.core.windows.net/data/ActivityLog01.csv',\n        FORMAT = 'CSV',\n        PARSER_VERSION = '2.0'\n    ) AS [result]\n",
+			"query": "\n-- Check and create the database if it doesn't exist\nIF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'AppleMusicDW')\nBEGIN\n    CREATE DATABASE AppleMusicDW;\nEND;\n\n-- Switch to the created or existing database\nUSE AppleMusicDW;\n\n-- Check and create the schema if it doesn't exist\nIF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'table_schema')\nBEGIN\n    EXEC('CREATE SCHEMA table_schema');\nEND;\n\n-- Create the external data source\nCREATE EXTERNAL DATA SOURCE srcActivityLog\nWITH \n(\n    LOCATION = 'https://azuredetraining.blob.core.windows.net/' ---https://<storage acc name>.blob.core.windows.net/\n);\n\n-- Specify the external file format for Parquet\nCREATE EXTERNAL FILE FORMAT ParquetFormat\nWITH (\n    FORMAT_TYPE = PARQUET\n);\n\n-- Create the external table\nCREATE EXTERNAL TABLE table_schema.activity_log (\n    [Correlationid] varchar(200),\n    [Operationname] varchar(300),\n    [Status] varchar(100),\n    [Eventcategory] varchar(100),\n    [Level] varchar(100),\n    [Time] varchar(100),\n    [Subscription] varchar(200),\n    [Eventinitiatedby] varchar(1000),\n    [Resourcetype] varchar(300),\n    [Resourcegroup] varchar(1000),\n    [Resource] varchar(2000)\n)\nWITH (\n    LOCATION = 'data/ActivityLog01.parquet',   -- <container name>/<file name>\n    DATA_SOURCE = srcActivityLog, \n    FILE_FORMAT = ParquetFormat  -- Use the correct file format\n);\n\n-- Select from the external table\nSELECT * FROM table_schema.activity_log;",
 			"metadata": {
 				"language": "sql"
 			},
 			"currentConnection": {
-				"databaseName": "master",
+				"databaseName": "AppleMusicDW",
 				"poolName": "Built-in"
 			},
 			"resultLimit": 5000
