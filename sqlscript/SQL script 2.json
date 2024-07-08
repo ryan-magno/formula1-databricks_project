@@ -1,0 +1,17 @@
+{
+	"name": "SQL script 2",
+	"properties": {
+		"content": {
+			"query": "--- Create the view\nCREATE OR ALTER VIEW [table_schema].[bi_test]\nAS\nSELECT DISTINCT Resourcegroup\nFROM [table_schema].[activity_log]\nWHERE Resourcegroup IS NOT NULL;\n\n--- View the view\nSELECT * FROM INFORMATION_SCHEMA.VIEWS\nWHERE TABLE_SCHEMA = 'table_schema' AND TABLE_NAME = 'bi_test';\n\n--- Check the view\nSELECT * FROM AppleMusicDW.table_schema.bi_test;\npow",
+			"metadata": {
+				"language": "sql"
+			},
+			"currentConnection": {
+				"databaseName": "AppleMusicDW",
+				"poolName": "Built-in"
+			},
+			"resultLimit": 5000
+		},
+		"type": "SqlQuery"
+	}
+}
