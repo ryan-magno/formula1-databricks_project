@@ -1,42 +1,52 @@
+
 # Formula 1 End-to-End Data Project
 
 ## Overview
 
-This project involves the extraction, transformation, and analysis of Formula 1 data using various Azure services. The main components include Databricks, Azure Data Lake Storage (ADLS), and Azure Key Vault. The data is transformed and stored for further analysis and visualization.
+This project aims to build a comprehensive data pipeline for Formula 1 data using Azure Databricks, Azure Storage Account, and Azure Key Vault. The project involves extracting, transforming, and loading data, followed by performing aggregations and visualizations to gain insights.
 
-## Components
+## Architecture
 
-### 1. Databricks
-- Central platform for data processing and transformation.
+### Databricks
 
-### 2. Storage Account
-- **Hierarchical Namespace Enabled**: Organizes data with a file system hierarchy.
-- **Redundancy**: Locally-redundant storage (LRS) for data durability.
+- Utilized Databricks for data transformation and processing.
 
-### 3. Key Vault
-- **Vault Access Policy**: Secures sensitive information, allowing controlled access.
+### Storage Account
 
-![System Architecture](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/473c6755-2ddb-4064-9145-82c0be54cceb/Untitled.png)
+- **Hierarchical Namespace**: Enabled
+- **Redundancy**: Locally Redundant Storage (LRS)
 
-## Data Transformation
+### Key Vault
 
-### Connection Configuration
-- Configured connections from ADLS to Key Vault using Databricks Secret Scopes.
-- Refer to tutorials for setting up these connections.
+- **Vault Access Policy**: Enabled in access configuration
 
-### Transformations
-Data transformations were performed in Databricks notebooks, including:
+![Key Vault Configuration](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/473c6755-2ddb-4064-9145-82c0be54cceb/Untitled.png)
 
-#### CSV Files
-- Defined datatypes/schema.
-- Renamed columns, concatenated, dropped unnecessary fields.
-- Added ingestion date and saved as Parquet.
+## Transformation
 
-#### JSON Files
-- Defined schema, dropped unnecessary fields, renamed columns.
+- Configured connection from ADLS to Key Vault to Databricks Secret Scopes (refer to TUTORIALS for reference).
+- Refer to the Databricks notebooks for the transformation steps.
+
+### Transformations Done:
+
+#### CSV
+
+- Define data types/schema
+- Rename columns
+- Concatenate columns
+- Drop unnecessary columns
+- Add ingestion date
+- Save as Parquet
+
+#### JSON
+
+- Define schema
+- Drop unnecessary fields
+- Rename fields
 
 #### Nested JSON
-- Sample structure:
+
+- Sample from nested JSON:
     ```python
     {
       "driverId": 1,
@@ -52,11 +62,13 @@ Data transformations were performed in Databricks notebooks, including:
       "url": "http://en.wikipedia.org/wiki/Lewis_Hamilton"
     }
     ```
-- Created schema for nested fields:
+    - Notice that `name` is nested.
+    - Create a schema for the outer and inner objects:
     ```python
     name_schema = StructType(fields=[StructField("forename", StringType(), True),
-                                     StructField("surname", StringType(), True)])
-    
+                                     StructField("surname", StringType(), True)
+    ])
+
     drivers_schema = StructType(fields=[StructField("driverId", IntegerType(), False),
                                         StructField("driverRef", StringType(), True),
                                         StructField("number", IntegerType(), True),
@@ -64,75 +76,113 @@ Data transformations were performed in Databricks notebooks, including:
                                         StructField("name", name_schema),
                                         StructField("dob", DateType(), True),
                                         StructField("nationality", StringType(), True),
-                                        StructField("url", StringType(), True)])
+                                        StructField("url", StringType(), True)
+    ])
     ```
-- Concatenated nested fields into one column:
+
+    - Concatenate the nested fields into one column:
     ```python
     .withColumn("name", concat(col("name.forename"), lit(" "), col("name.surname")))
     ```
 
 #### Multi-line JSON
-- Specified that JSON is multi-line:
+
+- Specify that JSON is multi-line:
     ```python
     pit_stops_df = spark.read.json(path=path, multiLine=True)
     ```
 
-### Storage
-- All transformed files were saved in the "processed" folder within the container.
+- Saved all transformed files to the “processed” folder in the container.
 
-![Processed Data](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/a8cffd2c-b6f3-4290-a7bc-d874c6160710/Untitled.png)
+![Processed Folder](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/a8cffd2c-b6f3-4290-a7bc-d874c6160710/Untitled.png)
 
 ## Databricks Workflows
 
 ### Including a Child Notebook
-- Variables like file locations are stored in a separate folder and notebook:
+
+![Child Notebook](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/b135f052-eddf-488a-aa6d-e65403867f64/Untitled.png)
+
+- Keep variables like file location in a separate folder and a new notebook.
     - Folder: `includes`
     - Notebook: `configuration`
-
     ```python
     raw_folder_path = 'abfss://raw@formula1adlsproj.dfs.core.windows.net'
     processed_folder_path = 'abfss://processed@formula1adlsproj.dfs.core.windows.net'
     presentation_folder_path = 'abfss://presentation@formula1adlsproj.dfs.core.windows.net'
     ```
-- To use these variables in other notebooks:
+
+- To pass these variables to another notebook, run:
     ```python
     %run ../includes/configuration
     ```
 
 ### Notebook Workflows
-- Used to manually run notebooks from another notebook:
-    ```python
-    v_result = dbutils.notebook.run("<notebook_name>", 0, {"p_data_source": "Ergast API"})
-    dbutils.notebook.exit("Success")
-    ```
+
+Used to run notebooks manually from another notebook.
+
+```python
+v_result = dbutils.notebook.run("<notebook_name>", 0, {"p_data_source": "Ergast API"})
+v_result
+```
+
+```python
+# `v_result` above will display "Success" when the notebook runs successfully.
+
+# Paste at the end of the notebook you want to run:
+dbutils.notebook.exit("Success")
+```
 
 ### Passing Parameters to Notebooks
-- Example of parameterization in Databricks:
+
+- Create a text widget:
     ```python
     dbutils.widgets.text("p_data_source", "")
     v_data_source = dbutils.widgets.get("p_data_source")
     ```
 
-## Databricks Jobs
-- Used to run the `ingest_all_files` notebook, which orchestrates the execution of all other notebooks.
+**Usage:**
+
+1. **Parameterization:** Replace hardcoded values with dynamic parameters.
+2. **Interactive Workflows:** Prompt users for input to tailor the notebook's behavior.
+3. **Dynamic Logic:** Use input to control the flow of the code.
+
+**Use Cases:**
+
+- Data source selection
+- Configuration settings
+- Date range selection
+- User preferences
+
+### Databricks Jobs
 
 ![Databricks Jobs](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/2a7eaa28-a34c-4220-a4b3-fdd98b41caf2/Untitled.png)
 
-## GitHub Integration
-- Configured connection with GitHub, created a repository, and cloned notebooks into the repo.
-- Note: Never push secrets to GitHub.
+- Used to run the `0. ingest_all_files` notebook, which runs all other notebooks.
+    - Databricks jobs run `ingest_all_files`, which runs all other notebooks.
+
+### Push to GitHub
+
+- Configure connection and log in.
+- Create a repository in GitHub.
+- Clone notebooks and move to the repository.
+    - **Important**: Do not push secrets.
 
 ## Databases, Tables, Views
 
-### Creating External Tables from Raw Data
-- Created a database for raw file tables.
+![Databases, Tables, Views](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/62acec40-5129-49f5-8efc-c687c63bf619/Untitled.png)
+
+### Create External Table from Raw Data - CSV
+
+### Created External Table
+
+- Created a database for the table of raw files.
 
 ## Aggregations and Visualization
-- Aggregated data for analysis.
-- Visualizations include:
-  - Most dominant drivers throughout the years.
-  - Most dominant teams throughout the years.
 
----
+- Aggregated the tables created.
+- Visualization includes:
+    - Most dominant drivers throughout the years.
+    - Most dominant teams throughout the years.
+```
 
-This documentation provides a comprehensive overview of the Formula 1 data project, detailing the architecture, data transformation processes, Databricks workflows, and integration with GitHub.
+This Markdown file is designed to be comprehensive and presentable, providing a clear overview of your Formula 1 end-to-end data project. It includes detailed descriptions, code snippets, and visual aids to guide readers through the project's various components and steps.
