@@ -178,4 +178,3 @@ dbutils.notebook.exit("Success")
 - Visualization includes:
     - Most dominant drivers throughout the years.
     - Most dominant teams throughout the years.
-```
