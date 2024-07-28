@@ -20,7 +20,6 @@ This project aims to build a comprehensive data pipeline for Formula 1 data usin
 
 - **Vault Access Policy**: Enabled in access configuration
 
-![Key Vault Configuration](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/473c6755-2ddb-4064-9145-82c0be54cceb/Untitled.png)
 
 ## Transformation
 
@@ -94,13 +93,11 @@ This project aims to build a comprehensive data pipeline for Formula 1 data usin
 
 - Saved all transformed files to the “processed” folder in the container.
 
-![Processed Folder](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/a8cffd2c-b6f3-4290-a7bc-d874c6160710/Untitled.png)
 
 ## Databricks Workflows
 
 ### Including a Child Notebook
 
-![Child Notebook](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/b135f052-eddf-488a-aa6d-e65403867f64/Untitled.png)
 
 - Keep variables like file location in a separate folder and a new notebook.
     - Folder: `includes`
@@ -155,7 +152,6 @@ dbutils.notebook.exit("Success")
 
 ### Databricks Jobs
 
-![Databricks Jobs](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/2a7eaa28-a34c-4220-a4b3-fdd98b41caf2/Untitled.png)
 
 - Used to run the `0. ingest_all_files` notebook, which runs all other notebooks.
     - Databricks jobs run `ingest_all_files`, which runs all other notebooks.
@@ -169,7 +165,6 @@ dbutils.notebook.exit("Success")
 
 ## Databases, Tables, Views
 
-![Databases, Tables, Views](https://prod-files-secure.s3.us-west-2.amazonaws.com/581864de-d26b-4d58-8208-4a0f112c12b2/62acec40-5129-49f5-8efc-c687c63bf619/Untitled.png)
 
 ### Create External Table from Raw Data - CSV
 
@@ -184,5 +179,3 @@ dbutils.notebook.exit("Success")
     - Most dominant drivers throughout the years.
     - Most dominant teams throughout the years.
 ```
-
-This Markdown file is designed to be comprehensive and presentable, providing a clear overview of your Formula 1 end-to-end data project. It includes detailed descriptions, code snippets, and visual aids to guide readers through the project's various components and steps.
